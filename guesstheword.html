@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Word</title>
+</head>
+
+<body onload="load()">
+    <h2>Guess the Word</h2>
+    <p><i>To guess the word you will be having 1 minute of time</i> <b id="timer"></b></p>
+    <h4 id="initial"></h4>
+    <form onsubmit="checkletter(event)">Enter a letter <input type="text" maxlength="1" size="1" id="letter" value=""
+            required>
+        <button id="guess1">Guess</button>
+    </form>
+    <form onsubmit="checkword(event)">Enter the word if you know <input type="text" id="word" value="" required>
+        <button id="guess2">Guess</button>
+    </form>
+    <h4 id="result"></h4>
+
+</body>
+
+<script>
+    var time = 60;
+    var x = setInterval(function () {
+        time--;
+        document.getElementById("timer").innerHTML = time + "s ";
+        if (time < 0) {
+            clearInterval(x);
+            document.getElementById("timer").innerHTML = "EXPIRED";
+            document.getElementById("letter").disabled = true;
+            document.getElementById("word").disabled = true;
+            document.getElementById("guess1").disabled = true;
+            document.getElementById("guess2").disabled = true;
+
+        }
+    }, 1000);
+    var word = "";
+    var curr;
+    var wsword = "";
+    async function load() {
+        await fetch('https://random-word-api.herokuapp.com/word')
+            .then(
+                function (response) {
+                    return response.json();
+                }
+            ).then(
+                function (data) {
+                    console.log(data[0]);
+                    wsword = data[0];
+                    for (let i = 0; i < data[0].length; i++) {
+                        word += data[0].charAt(i) + " ";
+                    }
+                }
+            )
+
+        document.getElementById("word").value = "";
+        document.getElementById("letter").value = "";
+        var initial = document.getElementById("initial");
+        var initialstr = "";
+        console.log(word);
+        for (let a = 0; a < word.length; a++) {
+            if (word.charAt(a) != " ") {
+                initialstr += "_";
+            } else {
+                initialstr += " ";
+            }
+        }
+        curr = initialstr;
+        initial.innerHTML = initialstr;
+
+    }
+    function checkletter(e) {
+        e.preventDefault();
+        const letter = document.getElementById("letter").value;
+        const result = document.getElementById("result");
+        document.getElementById("letter").value = "";
+        if (word.includes(letter)) {
+            result.innerHTML = `Good Guess`;
+            var update = "";
+            for (let i = 0; i < word.length; i++) {
+                if (word.charAt(i) == letter) {
+                    update += letter;
+                } else {
+                    update += curr.charAt(i);
+                }
+            }
+            console.log(update);
+            if (word == update) {
+                result.innerHTML = `Good Guess, You found the word`;
+                document.getElementById("letter").disabled = true;
+                document.getElementById("word").disabled = true;
+                document.getElementById("guess1").disabled = true;
+                document.getElementById("guess2").disabled = true;
+            }
+            var initial = document.getElementById("initial");
+            initial.innerHTML = update;
+            curr = update;
+        } else {
+            result.innerHTML = `Your Guessed Character ${letter} is not present in the word`;
+        }
+    }
+    function checkword(e) {
+        e.preventDefault();
+        const result = document.getElementById("result");
+        const fullword = document.getElementById("word").value;
+        document.getElementById("word").value = "";
+        if (wsword == fullword) {
+            result.innerHTML = `Good Guess, You found the word`;
+            document.getElementById("letter").disabled = true;
+            document.getElementById("word").disabled = true;
+            document.getElementById("guess1").disabled = true;
+            document.getElementById("guess2").disabled = true;
+            var update = "";
+            for (let i = 0; i < fullword.length; i++) {
+                update += fullword.charAt(i) + " ";
+            }
+            var initial = document.getElementById("initial");
+            initial.innerHTML = update;
+        } else {
+            result.innerHTML = `Wrong Guess :(`;
+        }
+    }
+</script>
+
+</html>
